@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Table | Automatic Data Extractor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            text-align: center;
+            border: 2px dashed #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section.dragover {
+            border-color: #3498db;
+            background: #f8f9ff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+
+        .upload-text h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+
+        .upload-text p {
+            color: #7f8c8d;
+            margin-bottom: 25px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .upload-btn {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .upload-btn i {
+            margin-right: 10px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Processing State */
+        .processing {
+            display: none;
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Table Section */
+        .table-section {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            margin-top: 30px;
+        }
+
+        .table-header {
+            padding: 25px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h2 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #3498db;
+            margin-bottom: 2px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Table */
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            background: #2c3e50;
+        }
+
+        th {
+            padding: 16px 20px;
+            text-align: left;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 14px 20px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.95rem;
+        }
+
+        tbody tr:hover {
+            background: #f8f9ff;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .category-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 30px;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #219653;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        /* Status Message */
+        .status {
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            color: #856404;
+        }
+
+        .status i {
+            font-size: 20px;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* File Info */
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .file-info-icon {
+            color: #3498db;
+            font-size: 24px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .upload-section {
+                padding: 30px 20px;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .stats {
+                width: 100%;
+                justify-content: space-around;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* Empty Table State */
+        .empty-table {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-table i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #e9ecef;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>PDF to Table Converter</h1>
+            <p>Upload PDF → Automatic Processing → Get Clean Table</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-icon">
+                <i class="fas fa-file-pdf"></i>
+            </div>
+            <div class="upload-text">
+                <h2>Upload Your PDF</h2>
+                <p>Drop your PDF file here or click to browse. All processing rules will be applied automatically.</p>
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-upload"></i> Choose PDF File
+                </button>
+            </div>
+            <input type="file" id="fileInput" accept=".pdf">
+        </div>
+
+        <!-- Status Message -->
+        <div class="status" id="status">
+            <i class="fas fa-info-circle"></i>
+            <span id="statusText">Processing your document...</span>
+        </div>
+
+        <!-- File Info -->
+        <div class="file-info" id="fileInfo">
+            <div class="file-info-icon">
+                <i class="fas fa-file"></i>
+            </div>
+            <div>
+                <div style="font-weight: 600;" id="fileName"></div>
+                <div style="font-size: 0.9rem; color: #7f8c8d;" id="fileSize"></div>
+            </div>
+        </div>
+
+        <!-- Processing -->
+        <div class="processing" id="processing">
+            <div class="spinner"></div>
+            <h3 style="color: #2c3e50; margin-bottom: 10px;">Processing PDF...</h3>
+            <p style="color: #7f8c8d;">Extracting and processing data, please wait</p>
+        </div>
+
+        <!-- Table Section -->
+        <div class="table-section" id="tableSection">
+            <div class="table-header">
+                <h2><i class="fas fa-table"></i> Extracted Data</h2>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value" id="statRows">0</div>
+                        <div class="stat-label">Rows</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="statColleges">0</div>
+                        <div class="stat-label">Colleges</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="statCategories">0</div>
+                        <div class="stat-label">Categories</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>College</th>
+                            <th>Status</th>
+                            <th>Branch</th>
+                            <th>Category</th>
+                            <th>Rank</th>
+                            <th>Percentile</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" id="downloadBtn" onclick="downloadCSV()">
+                    <i class="fas fa-download"></i> Download CSV
+                </button>
+                <button class="btn btn-secondary" onclick="resetApp()">
+                    <i class="fas fa-redo"></i> Process Another
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2024 PDF to Table Converter | All processing rules applied automatically</p>
+        </div>
+    </div>
+
+    <!-- PDF.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Set up PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        class PDFProcessor {
+            constructor() {
+                this.patternsToProcess = [
+                    'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
+                    'I-Non Defence', 'I-Non PWD', 'I-Non',
+                    'II-Non Defence', 'II-Non PWD', 'II-Non',
+                    'III-Non Defence', 'III-Non PWD', 'III-Non',
+                    'IV-Non Defence', 'IV-Non PWD', 'IV-Non',
+                    'V-Non Defence', 'V-Non PWD', 'V-Non', 'MH'
+                ];
+                
+                this.preservePatterns = [
+                    'GOPENS', 'GSCS', 'GVJS', 'GNT1S', 'GNT2S', 'GOBCS', 'GSEBCS',
+                    'LOPENS', 'LNT2S', 'LOBCS', 'LSEBCS', 'PWDOPENS', 'PWDOBCS',
+                    'TFWS', 'PWD', 'OPENS', 'OBCS', 'EWS', 'SC', 'ST'
+                ];
+                
+                this.categories = [
+                    "GOPENS", "GOPENH", "GOPENO", "GOBCS", "GOBCH", "GOBCO",
+                    "GSCS", "GSCH", "GSCO", "GSTS", "GSTH", "GSTO",
+                    "GVJS", "GVJH", "GVJO", "GNT1S", "GNT1H", "GNT1O",
+                    "GNT2S", "GNT2H", "GNT2O", "GNT3S", "GNT3H", "GNT3O",
+                    "GSEBCS", "GSEBCH", "GSEBCO", "LOPENS", "LOPENH", "LOPENO",
+                    "LOBCS", "LOBCH", "LOBCO", "LSCS", "LSCH", "LSCO",
+                    "LSTS", "LSTH", "LSTO", "LSEBCS", "LSEBCH", "LSEBCO",
+                    "LNT1H", "LNT2S", "LNT2H", "LNT2O", "LNT3O", "TFWS",
+                    "EWS", "PWDOPENS", "PWDOPENH", "PWDOPENO", "PWDSCS",
+                    "PWDSCH", "PWDOBCS", "PWDOBCH", "PWDSEBCH", "DEFOPENS",
+                    "DEFOBCS", "DEFSCS", "DEFROBCS", "DEFRSEBCS", "ORPHAN", "MI"
+                ];
+                
+                this.statusList = [
+                    "Government Home University : Swami Ramanand Teerth Marathwada University, Nanded",
+                    "Government Home University : Sant Gadge Baba Amravati University",
+                    "Government Home University : Mumbai University",
+                    "Government Home University : Shivaji University",
+                    "Deemed to be University Autonomous",
+                    "University Managed Autonomous",
+                    "Government-Aided Autonomous",
+                    "Un-Aided Autonomous",
+                    "University Autonomous",
+                    "University Department",
+                    "Un-Aided Home University",
+                    "Government Autonomous",
+                    "Un-Aided",
+                    "University",
+                    "Government"
+                ];
+            }
+
+            cleanText(text) {
+                return text
+                    .replace(/\s+/g, ' ')
+                    .replace(/(\d+)\.\s+(\d+)/g, '$1.$2')
+                    .replace(/\(\s*/g, '(')
+                    .replace(/\s*\)/g, ')');
+            }
+
+            processText(text) {
+                const rankPattern = /\d+\s*\(\s*\d+(?:\.\d+)?\s*\)/;
+                let currentText = text;
+                let changesMade = true;
+                
+                while (changesMade) {
+                    changesMade = false;
+                    const lines = currentText.split('\n');
+                    const processedLines = [];
+                    
+                    for (let line of lines) {
+                        if (!line.trim()) {
+                            processedLines.push(line);
+                            continue;
+                        }
+                        
+                        let lineResult = line;
+                        
+                        for (const pattern of this.patternsToProcess) {
+                            const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                            const regex = new RegExp(`(${rankPattern.source})\\s+(${escapedPattern})(?!\\w)\\s+(${rankPattern.source})`, 'gi');
+                            
+                            const match = regex.exec(lineResult);
+                            if (match) {
+                                const before = match[1];
+                                const middlePattern = match[2];
+                                const after = match[3];
+                                
+                                const surroundingText = lineResult.substring(
+                                    Math.max(0, match.index - 20),
+                                    Math.min(lineResult.length, match.index + middlePattern.length + 20)
+                                ).toUpperCase();
+                                
+                                const isPreserved = this.preservePatterns.some(preserved => 
+                                    surroundingText.includes(preserved.toUpperCase())
+                                );
+                                
+                                if (!isPreserved) {
+                                    const replacement = `${after} ${before}`;
+                                    lineResult = lineResult.substring(0, match.index) + replacement + 
+                                               lineResult.substring(match.index + match[0].length);
+                                    
+                                    changesMade = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        processedLines.push(lineResult);
+                    }
+                    
+                    currentText = processedLines.join('\n');
+                }
+                
+                return currentText
+                    .replace(/\s+/g, ' ')
+                    .replace(/\s+\)/g, ')')
+                    .replace(/\(\s+/g, '(')
+                    .replace(/\s{2,}/g, ' ')
+                    .trim();
+            }
+
+            parseTable(text) {
+                const cleanedText = this.cleanText(text);
+                const result = [];
+                const stats = {
+                    colleges: new Set(),
+                    branches: new Set(),
+                    categories: new Set()
+                };
+
+                const collegeRegex = /(\d{5})\s*-\s*([^0-9]+?)(?=\d{10}\s*-)/g;
+                const collegeMatches = [...cleanedText.matchAll(collegeRegex)];
+
+                if (collegeMatches.length === 0) {
+                    return { rows: [], stats: stats };
+                }
+
+                collegeMatches.forEach((colMatch, colIndex) => {
+                    const collegeName = colMatch[2].trim();
+                    stats.colleges.add(collegeName);
+
+                    const start = colMatch.index;
+                    const end = (collegeMatches[colIndex + 1]) ? collegeMatches[colIndex + 1].index : cleanedText.length;
+                    const collegeBlock = cleanedText.substring(start, end);
+
+                    let status = "N/A";
+                    for (const s of this.statusList) {
+                        if (collegeBlock.toLowerCase().includes(s.toLowerCase())) {
+                            status = s;
+                            break;
+                        }
+                    }
+
+                    const branchRegex = /(\d{10})\s*-\s*([A-Za-z &()]+?)(?=\s+Status:)/g;
+                    const branchMatches = [...collegeBlock.matchAll(branchRegex)];
+
+                    branchMatches.forEach((brMatch, brIndex) => {
+                        const branchName = brMatch[2].trim();
+                        stats.branches.add(branchName);
+
+                        const bStart = brMatch.index;
+                        const bEnd = (branchMatches[brIndex + 1]) ? branchMatches[brIndex + 1].index : collegeBlock.length;
+                        const branchBlock = collegeBlock.substring(bStart, bEnd);
+
+                        const catRegex = new RegExp(`\\b(${this.categories.join('|')})\\b`, 'gi');
+                        const categories = branchBlock.match(catRegex);
+
+                        if (!categories) return;
+
+                        const pairs = branchBlock.match(/\d+\s*\([\d.]+\)/g);
+                        if (!pairs) return;
+
+                        categories.forEach((cat, i) => {
+                            if (!pairs[i]) return;
+
+                            const match = pairs[i].match(/(\d+)\s*\(([\d.]+)\)/);
+                            if (!match) return;
+
+                            stats.categories.add(cat);
+
+                            result.push({
+                                college: collegeName,
+                                status: status,
+                                branch: branchName,
+                                category: cat,
+                                rank: parseInt(match[1]),
+                                percentile: parseFloat(match[2])
+                            });
+                        });
+                    });
+                });
+
+                return {
+                    rows: result,
+                    stats: {
+                        totalRows: result.length,
+                        totalColleges: stats.colleges.size,
+                        totalBranches: stats.branches.size,
+                        totalCategories: stats.categories.size
+                    }
+                };
+            }
+        }
+
+        // DOM Elements
+        const uploadSection = document.getElementById('uploadSection');
+        const fileInput = document.getElementById('fileInput');
+        const status = document.getElementById('status');
+        const statusText = document.getElementById('statusText');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const processing = document.getElementById('processing');
+        const tableSection = document.getElementById('tableSection');
+        const tableBody = document.getElementById('tableBody');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const statRows = document.getElementById('statRows');
+        const statColleges = document.getElementById('statColleges');
+        const statCategories = document.getElementById('statCategories');
+
+        // Processor instance
+        const processor = new PDFProcessor();
+        let extractedData = [];
+
+        // Drag and drop
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === 'application/pdf') {
+                handlePDFFile(files[0]);
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handlePDFFile(e.target.files[0]);
+            }
+        });
+
+        // Handle PDF file
+        async function handlePDFFile(file) {
+            if (!file.type.includes('pdf')) {
+                showStatus('Please upload a PDF file', 'error');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                showStatus('File size should be less than 10MB', 'error');
+                return;
+            }
+
+            // Show file info
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.style.display = 'flex';
+
+            // Show processing
+            uploadSection.style.display = 'none';
+            processing.style.display = 'block';
+            showStatus('Processing PDF file...', 'info');
+
+            try {
+                // Extract text from PDF
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                
+                let extractedText = '';
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const textContent = await page.getTextContent();
+                    extractedText += textContent.items.map(item => item.str).join(' ') + '\n';
+                }
+
+                // Process text
+                showStatus('Applying processing rules...', 'info');
+                const processedText = processor.processText(extractedText);
+
+                // Parse table data
+                showStatus('Extracting table data...', 'info');
+                const result = processor.parseTable(processedText);
+                extractedData = result.rows;
+
+                // Update statistics
+                statRows.textContent = result.stats.totalRows;
+                statColleges.textContent = result.stats.totalColleges;
+                statCategories.textContent = result.stats.totalCategories;
+
+                // Populate table
+                populateTable();
+
+                // Show table section
+                processing.style.display = 'none';
+                tableSection.style.display = 'block';
+                downloadBtn.disabled = false;
+                
+                showStatus(`Successfully extracted ${result.stats.totalRows} rows of data`, 'success');
+
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('Error processing PDF: ' + error.message, 'error');
+                resetToUpload();
+            }
+        }
+
+        // Populate table
+        function populateTable() {
+            tableBody.innerHTML = '';
+
+            if (extractedData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-table">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <h3>No Data Found</h3>
+                            <p>Could not extract table data from the PDF</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            extractedData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.college}</td>
+                    <td>${row.status}</td>
+                    <td>${row.branch}</td>
+                    <td><span class="category-tag">${row.category}</span></td>
+                    <td><strong>${row.rank.toLocaleString()}</strong></td>
+                    <td><strong>${row.percentile}</strong></td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Download CSV
+        function downloadCSV() {
+            if (extractedData.length === 0) {
+                showStatus('No data to download', 'error');
+                return;
+            }
+
+            const headers = ['College', 'Status', 'Branch', 'Category', 'Rank', 'Percentile'];
+            let csv = headers.join(',') + '\n';
+
+            extractedData.forEach(row => {
+                const rowData = [
+                    `"${row.college}"`,
+                    `"${row.status}"`,
+                    `"${row.branch}"`,
+                    `"${row.category}"`,
+                    row.rank,
+                    row.percentile
+                ];
+                csv += rowData.join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Extracted_Data_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showStatus('CSV file downloaded successfully!', 'success');
+        }
+
+        // Reset app
+        function resetApp() {
+            uploadSection.style.display = 'block';
+            tableSection.style.display = 'none';
+            status.style.display = 'none';
+            fileInfo.style.display = 'none';
+            fileInput.value = '';
+            extractedData = [];
+            tableBody.innerHTML = '';
+            downloadBtn.disabled = true;
+        }
+
+        // Reset to upload state
+        function resetToUpload() {
+            processing.style.display = 'none';
+            uploadSection.style.display = 'block';
+            fileInfo.style.display = 'none';
+        }
+
+        // Show status message
+        function showStatus(message, type) {
+            statusText.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'flex';
+            
+            if (type === 'error') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Initialize
+        window.onload = function() {
+            // Add some example data for testing
+            setTimeout(() => {
+                showStatus('Ready to process PDF files', 'info');
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
