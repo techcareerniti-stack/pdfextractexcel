@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF to Excel | Automatic Data Extractor</title>
+    <title>Data Processing Toolkit</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Reset and Base Styles */
         * {
             margin: 0;
             padding: 0;
@@ -16,15 +18,105 @@
             background: #f8f9fa;
             color: #333;
             line-height: 1.6;
-            padding: 20px;
             min-height: 100vh;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        /* Navigation Bar */
+        .navbar {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 0 20px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: white;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .nav-link.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* Tool Container */
+        .tool-container {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tool-container.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* PDF Converter Styles (from pdfconverter.html) */
         .header {
             text-align: center;
             margin-bottom: 40px;
@@ -42,7 +134,6 @@
             font-size: 1.1rem;
         }
 
-        /* Upload Section */
         .upload-section {
             background: white;
             border-radius: 12px;
@@ -102,11 +193,10 @@
             margin-right: 10px;
         }
 
-        #fileInput {
+        #pdfFileInput {
             display: none;
         }
 
-        /* Processing State */
         .processing {
             display: none;
             text-align: center;
@@ -128,7 +218,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Table Section */
         .table-section {
             display: none;
             background: white;
@@ -175,7 +264,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Table */
         .table-container {
             max-height: 500px;
             overflow-y: auto;
@@ -226,7 +314,6 @@
             font-weight: 600;
         }
 
-        /* Action Buttons */
         .actions {
             display: flex;
             justify-content: center;
@@ -270,17 +357,6 @@
             transform: translateY(-2px);
         }
 
-        /* Footer */
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #e9ecef;
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-
-        /* Status Message */
         .status {
             padding: 20px;
             background: #fff3cd;
@@ -306,7 +382,6 @@
             color: #721c24;
         }
 
-        /* File Info */
         .file-info {
             margin-top: 20px;
             padding: 15px;
@@ -322,33 +397,169 @@
             font-size: 24px;
         }
 
-        /* Responsive */
+        /* Excel Processor Styles (from excelFormat.html) */
+        .excel-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .excel-container h2 {
+            margin-bottom: 10px;
+            color: #1f2937;
+            font-size: clamp(20px, 5vw, 24px);
+            line-height: 1.3;
+            text-align: center;
+        }
+
+        .excel-container p {
+            margin-bottom: 25px;
+            color: #6b7280;
+            font-size: clamp(13px, 3.5vw, 15px);
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .file-box {
+            border: 2px dashed #c7d2fe;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f9fafb;
+            margin-bottom: 25px;
+            transition: border-color 0.3s ease;
+        }
+
+        .file-box:hover {
+            border-color: #2563eb;
+        }
+
+        .file-box input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .process-btn {
+            width: 100%;
+            padding: clamp(12px, 3.5vw, 16px);
+            font-size: clamp(14px, 4vw, 16px);
+            font-weight: 600;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            background: #2563eb;
+            color: #ffffff;
+            transition: background 0.25s ease, transform 0.1s ease;
+        }
+
+        .process-btn:hover {
+            background: #1e40af;
+        }
+
+        .process-btn:active {
+            transform: scale(0.98);
+        }
+
+        .excel-loading {
+            display: none;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #2563eb;
+            text-align: center;
+        }
+
+        .excel-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(37, 99, 235, 0.3);
+            border-radius: 50%;
+            border-top-color: #2563eb;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .excel-success {
+            display: none;
+            margin-top: 16px;
+            padding: 12px;
+            background-color: #d1fae5;
+            color: #065f46;
+            border-radius: 8px;
+            font-size: 14px;
+            border-left: 4px solid #10b981;
+        }
+
+        .excel-error {
+            display: none;
+            margin-top: 16px;
+            padding: 12px;
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-radius: 8px;
+            font-size: 14px;
+            border-left: 4px solid #ef4444;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: clamp(11px, 3vw, 13px);
+            color: #9ca3af;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .container {
-                padding: 10px;
+            .menu-toggle {
+                display: block;
             }
-            
-            .upload-section {
-                padding: 30px 20px;
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #2c3e50;
+                flex-direction: column;
+                padding: 20px;
+                gap: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             }
-            
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-link {
+                padding: 15px;
+                justify-content: center;
+            }
+
             .table-header {
                 flex-direction: column;
                 gap: 15px;
                 text-align: center;
             }
-            
+
             .stats {
                 width: 100%;
                 justify-content: space-around;
             }
-            
+
             .actions {
                 flex-direction: column;
             }
-            
+
             .btn {
                 width: 100%;
+            }
+
+            .upload-section {
+                padding: 30px 20px;
             }
         }
 
@@ -365,115 +576,244 @@
             color: #e9ecef;
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>PDF to Excel Converter</h1>
-            <p>Upload PDF → Automatic Processing → Get Clean Excel</p>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="#" class="logo" onclick="switchTool('home')">
+                <i class="fas fa-tools"></i>
+                Data Toolkit
+            </a>
+            
+            <button class="menu-toggle" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <ul class="nav-links" id="navLinks">
+                <li>
+                    <a href="#" class="nav-link" onclick="switchTool('pdf')">
+                        <i class="fas fa-file-pdf"></i>
+                        PDF to Excel
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" onclick="switchTool('excel')">
+                        <i class="fas fa-file-excel"></i>
+                        Excel Processor
+                    </a>
+                </li>
+            </ul>
         </div>
+    </nav>
 
-        <!-- Upload Section -->
-        <div class="upload-section" id="uploadSection">
-            <div class="upload-icon">
-                <i class="fas fa-file-pdf"></i>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Welcome Page -->
+        <div class="tool-container active" id="home">
+            <div class="header">
+                <h1>Data Processing Toolkit</h1>
+                <p>Choose a tool to get started</p>
             </div>
-            <div class="upload-text">
-                <h2>Upload Your PDF</h2>
-                <p>Drop your PDF file here or click to browse. All processing rules will be applied automatically.</p>
-                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                    <i class="fas fa-upload"></i> Choose PDF File
-                </button>
-            </div>
-            <input type="file" id="fileInput" accept=".pdf">
-        </div>
-
-        <!-- Status Message -->
-        <div class="status" id="status">
-            <i class="fas fa-info-circle"></i>
-            <span id="statusText">Processing your document...</span>
-        </div>
-
-        <!-- File Info -->
-        <div class="file-info" id="fileInfo">
-            <div class="file-info-icon">
-                <i class="fas fa-file"></i>
-            </div>
-            <div>
-                <div style="font-weight: 600;" id="fileName"></div>
-                <div style="font-size: 0.9rem; color: #7f8c8d;" id="fileSize"></div>
-            </div>
-        </div>
-
-        <!-- Processing -->
-        <div class="processing" id="processing">
-            <div class="spinner"></div>
-            <h3 style="color: #2c3e50; margin-bottom: 10px;">Processing PDF...</h3>
-            <p style="color: #7f8c8d;">Extracting and processing data, please wait</p>
-        </div>
-
-        <!-- Table Section -->
-        <div class="table-section" id="tableSection">
-            <div class="table-header">
-                <h2><i class="fas fa-table"></i> Extracted Data</h2>
-                <div class="stats">
-                    <div class="stat">
-                        <div class="stat-value" id="statRows">0</div>
-                        <div class="stat-label">Rows</div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 40px;">
+                <div style="background: white; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.3s ease;" onclick="switchTool('pdf')">
+                    <div style="font-size: 60px; color: #e74c3c; margin-bottom: 20px;">
+                        <i class="fas fa-file-pdf"></i>
                     </div>
-                    <div class="stat">
-                        <div class="stat-value" id="statColleges">0</div>
-                        <div class="stat-label">Colleges</div>
+                    <h2 style="color: #2c3e50; margin-bottom: 15px;">PDF to Excel Converter</h2>
+                    <p style="color: #7f8c8d; margin-bottom: 20px;">Upload PDF → Automatic Processing → Get Clean Excel</p>
+                    <div style="background: #3498db; color: white; padding: 12px 24px; border-radius: 6px; display: inline-block; font-weight: 600;">
+                        Open Tool
                     </div>
-                    <div class="stat">
-                        <div class="stat-value" id="statCategories">0</div>
-                        <div class="stat-label">Categories</div>
+                </div>
+                
+                <div style="background: white; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.3s ease;" onclick="switchTool('excel')">
+                    <div style="font-size: 60px; color: #27ae60; margin-bottom: 20px;">
+                        <i class="fas fa-file-excel"></i>
+                    </div>
+                    <h2 style="color: #2c3e50; margin-bottom: 15px;">Excel Auto Processor</h2>
+                    <p style="color: #7f8c8d; margin-bottom: 20px;">Upload Excel → Auto Process → Download CSV</p>
+                    <div style="background: #27ae60; color: white; padding: 12px 24px; border-radius: 6px; display: inline-block; font-weight: 600;">
+                        Open Tool
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>College</th>
-                            <th>Status</th>
-                            <th>Branch</th>
-                            <th>Category</th>
-                            <th>Rank</th>
-                            <th>Percentile</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Data will be inserted here -->
-                    </tbody>
-                </table>
+        <!-- PDF Converter Tool -->
+        <div class="tool-container" id="pdf">
+            <div class="header">
+                <h1>PDF to Excel Converter</h1>
+                <p>Upload PDF → Automatic Processing → Get Clean Excel</p>
             </div>
 
-            <div class="actions">
-                <button class="btn btn-primary" id="downloadBtn" onclick="downloadCSV()">
-                    <i class="fas fa-download"></i> Download CSV
-                </button>
-                <button class="btn btn-secondary" onclick="resetApp()">
-                    <i class="fas fa-redo"></i> Process Another
-                </button>
+            <!-- Upload Section -->
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-icon">
+                    <i class="fas fa-file-pdf"></i>
+                </div>
+                <div class="upload-text">
+                    <h2>Upload Your PDF</h2>
+                    <p>Drop your PDF file here or click to browse. All processing rules will be applied automatically.</p>
+                    <button class="upload-btn" onclick="document.getElementById('pdfFileInput').click()">
+                        <i class="fas fa-upload"></i> Choose PDF File
+                    </button>
+                </div>
+                <input type="file" id="pdfFileInput" accept=".pdf">
+            </div>
+
+            <!-- Status Message -->
+            <div class="status" id="status">
+                <i class="fas fa-info-circle"></i>
+                <span id="statusText">Processing your document...</span>
+            </div>
+
+            <!-- File Info -->
+            <div class="file-info" id="fileInfo">
+                <div class="file-info-icon">
+                    <i class="fas fa-file"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 600;" id="fileName"></div>
+                    <div style="font-size: 0.9rem; color: #7f8c8d;" id="fileSize"></div>
+                </div>
+            </div>
+
+            <!-- Processing -->
+            <div class="processing" id="processing">
+                <div class="spinner"></div>
+                <h3 style="color: #2c3e50; margin-bottom: 10px;">Processing PDF...</h3>
+                <p style="color: #7f8c8d;">Extracting and processing data, please wait</p>
+            </div>
+
+            <!-- Table Section -->
+            <div class="table-section" id="tableSection">
+                <div class="table-header">
+                    <h2><i class="fas fa-table"></i> Extracted Data</h2>
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-value" id="statRows">0</div>
+                            <div class="stat-label">Rows</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="statColleges">0</div>
+                            <div class="stat-label">Colleges</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="statCategories">0</div>
+                            <div class="stat-label">Categories</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>College</th>
+                                <th>Status</th>
+                                <th>Branch</th>
+                                <th>Category</th>
+                                <th>Rank</th>
+                                <th>Percentile</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-primary" id="downloadBtn" onclick="downloadCSV()">
+                        <i class="fas fa-download"></i> Download CSV
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetPDFApp()">
+                        <i class="fas fa-redo"></i> Process Another
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- Footer -->
-        <div class="footer">
-            <p>© 2024 PDF to Table Converter | All processing rules applied automatically</p>
+        <!-- Excel Processor Tool -->
+        <div class="tool-container" id="excel">
+            <div class="excel-container">
+                <h2>Excel Auto Processor</h2>
+                <p>Upload Excel → Auto Process → Download CSV</p>
+                <div class="file-box">
+                    <input type="file" id="excelFileInput" accept=".xlsx,.csv">
+                </div>
+                <button class="process-btn" onclick="processExcel()" id="excelProcessBtn">
+                    Process & Download CSV
+                </button>
+                
+                <div class="excel-loading" id="excelLoading">
+                    <div class="excel-spinner"></div> Processing your file...
+                </div>
+                
+                <div class="excel-success" id="excelSuccess">
+                    File processed successfully! Download should start automatically.
+                </div>
+                
+                <div class="excel-error" id="excelError">
+                    An error occurred. Please check your file and try again.
+                </div>
+                
+                <div class="footer">
+                    Supports .xlsx and .csv files | Optimized for all devices
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- PDF.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <script>
         // Set up PDF.js worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+        // Navigation functionality
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
+        }
+
+        function switchTool(toolId) {
+            // Hide all tool containers
+            document.querySelectorAll('.tool-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            
+            // Show selected tool container
+            document.getElementById(toolId).classList.add('active');
+            
+            // Update active nav link
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            if (toolId === 'pdf') {
+                document.querySelector('.nav-link:nth-child(1)').classList.add('active');
+            } else if (toolId === 'excel') {
+                document.querySelector('.nav-link:nth-child(2)').classList.add('active');
+            }
+            
+            // Close mobile menu if open
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.remove('active');
+            
+            // Reset tools to initial state
+            if (toolId === 'pdf') {
+                resetPDFApp();
+            } else if (toolId === 'excel') {
+                resetExcelApp();
+            }
+        }
+
+        // PDF Processor Class
         class PDFProcessor {
             constructor() {
                 this.patternsToProcess = [
@@ -677,9 +1017,9 @@
             }
         }
 
-        // DOM Elements
-        const uploadSection = document.getElementById('uploadSection');
-        const fileInput = document.getElementById('fileInput');
+        // PDF Tool Variables
+        const pdfUploadSection = document.getElementById('uploadSection');
+        const pdfFileInput = document.getElementById('pdfFileInput');
         const status = document.getElementById('status');
         const statusText = document.getElementById('statusText');
         const fileInfo = document.getElementById('fileInfo');
@@ -688,28 +1028,28 @@
         const processing = document.getElementById('processing');
         const tableSection = document.getElementById('tableSection');
         const tableBody = document.getElementById('tableBody');
-        const downloadBtn = document.getElementById('downloadBtn');
+        const pdfDownloadBtn = document.getElementById('downloadBtn');
         const statRows = document.getElementById('statRows');
         const statColleges = document.getElementById('statColleges');
         const statCategories = document.getElementById('statCategories');
 
-        // Processor instance
+        // PDF Processor instance
         const processor = new PDFProcessor();
         let extractedData = [];
 
-        // Drag and drop
-        uploadSection.addEventListener('dragover', (e) => {
+        // PDF Drag and drop
+        pdfUploadSection.addEventListener('dragover', (e) => {
             e.preventDefault();
-            uploadSection.classList.add('dragover');
+            pdfUploadSection.classList.add('dragover');
         });
 
-        uploadSection.addEventListener('dragleave', () => {
-            uploadSection.classList.remove('dragover');
+        pdfUploadSection.addEventListener('dragleave', () => {
+            pdfUploadSection.classList.remove('dragover');
         });
 
-        uploadSection.addEventListener('drop', (e) => {
+        pdfUploadSection.addEventListener('drop', (e) => {
             e.preventDefault();
-            uploadSection.classList.remove('dragover');
+            pdfUploadSection.classList.remove('dragover');
             
             const files = e.dataTransfer.files;
             if (files.length > 0 && files[0].type === 'application/pdf') {
@@ -717,8 +1057,8 @@
             }
         });
 
-        // File input change
-        fileInput.addEventListener('change', (e) => {
+        // PDF File input change
+        pdfFileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
                 handlePDFFile(e.target.files[0]);
             }
@@ -742,7 +1082,7 @@
             fileInfo.style.display = 'flex';
 
             // Show processing
-            uploadSection.style.display = 'none';
+            pdfUploadSection.style.display = 'none';
             processing.style.display = 'block';
             showStatus('Processing PDF file...', 'info');
 
@@ -773,24 +1113,24 @@
                 statCategories.textContent = result.stats.totalCategories;
 
                 // Populate table
-                populateTable();
+                populatePDFTable();
 
                 // Show table section
                 processing.style.display = 'none';
                 tableSection.style.display = 'block';
-                downloadBtn.disabled = false;
+                pdfDownloadBtn.disabled = false;
                 
                 showStatus(`Successfully extracted ${result.stats.totalRows} rows of data`, 'success');
 
             } catch (error) {
                 console.error('Error:', error);
                 showStatus('Error processing PDF: ' + error.message, 'error');
-                resetToUpload();
+                resetPDFApp();
             }
         }
 
-        // Populate table
-        function populateTable() {
+        // Populate PDF table
+        function populatePDFTable() {
             tableBody.innerHTML = '';
 
             if (extractedData.length === 0) {
@@ -820,7 +1160,7 @@
             });
         }
 
-        // Download CSV
+        // Download CSV from PDF tool
         function downloadCSV() {
             if (extractedData.length === 0) {
                 showStatus('No data to download', 'error');
@@ -854,26 +1194,20 @@
             showStatus('CSV file downloaded successfully!', 'success');
         }
 
-        // Reset app
-        function resetApp() {
-            uploadSection.style.display = 'block';
+        // Reset PDF app
+        function resetPDFApp() {
+            pdfUploadSection.style.display = 'block';
             tableSection.style.display = 'none';
             status.style.display = 'none';
             fileInfo.style.display = 'none';
-            fileInput.value = '';
+            pdfFileInput.value = '';
             extractedData = [];
             tableBody.innerHTML = '';
-            downloadBtn.disabled = true;
+            pdfDownloadBtn.disabled = true;
+            pdfUploadSection.classList.remove('dragover');
         }
 
-        // Reset to upload state
-        function resetToUpload() {
-            processing.style.display = 'none';
-            uploadSection.style.display = 'block';
-            fileInfo.style.display = 'none';
-        }
-
-        // Show status message
+        // Show status message for PDF tool
         function showStatus(message, type) {
             statusText.textContent = message;
             status.className = `status ${type}`;
@@ -886,6 +1220,195 @@
             }
         }
 
+        // Excel Processor Functions
+        function processExcel() {
+            const file = document.getElementById("excelFileInput").files[0];
+            const processBtn = document.getElementById("excelProcessBtn");
+            const loadingIndicator = document.getElementById("excelLoading");
+            const successMessage = document.getElementById("excelSuccess");
+            const errorMessage = document.getElementById("excelError");
+            
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+            
+            if (!file) {
+                errorMessage.textContent = "Please upload an Excel file";
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            // Show loading indicator
+            loadingIndicator.style.display = 'block';
+            processBtn.disabled = true;
+            processBtn.textContent = "Processing...";
+            processBtn.style.opacity = "0.7";
+            
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const workbook = XLSX.read(new Uint8Array(e.target.result), { type: "array" });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+                    const output = [];
+
+                    rows.forEach(row => {
+                        let category = (row.Category || "").toString().trim();
+                        const first = category.charAt(0);
+                        const last  = category.slice(-1);
+
+                        /* ---------- Gender ---------- */
+                        let gender = "";
+                        if (first === "G") gender = "All";
+                        if (first === "L") gender = "Female";
+
+                        /* Remove first letter G / L */
+                        if (first === "G" || first === "L") {
+                            category = category.substring(1);
+                        }
+
+                        /* ---------- Alloted ---------- */
+                        let alloted = "";
+                        if (last === "O" || last === "H") {
+                            alloted = last;
+                            category = category.slice(0, -1);
+                        }
+
+                        /* ---------- StateKota (S) ---------- */
+                        let stateKota = "";
+                        let upperCat = category.toUpperCase();
+                        const isException = (upperCat === "EWS" || upperCat === "TFWS");
+
+                        if (!isException && upperCat.endsWith("S")) {
+                            stateKota = "Yes";
+                            category = category.slice(0, -1);
+                        }
+
+                        /* ---------- SpecialReservation ---------- */
+                        let specialReservation = "";
+                        upperCat = category.toUpperCase();
+
+                        if (upperCat.startsWith("DEFR")) {
+                            specialReservation = "DEFR";
+                            category = category.substring(4);
+                        }
+                        else if (upperCat.startsWith("PWD")) {
+                            specialReservation = "PWD";
+                            category = category.substring(3);
+                        }
+                        else if (upperCat.startsWith("DEF")) {
+                            specialReservation = "DEF";
+                            category = category.substring(3);
+                        }
+                        else if (upperCat.includes("ORPHAN")) {
+                            specialReservation = "ORPHAN";
+                            // do NOT remove ORPHAN from category
+                        }
+
+                        output.push({
+                            ...row,
+                            Gender: gender,
+                            Category: category,
+                            StateKota: stateKota,
+                            SpecialReservation: specialReservation,
+                            Alloted: alloted
+                        });
+                    });
+
+                    // Hide loading indicator
+                    loadingIndicator.style.display = 'none';
+                    
+                    // Show success message
+                    successMessage.style.display = 'block';
+                    
+                    // Download the CSV
+                    downloadExcelCSV(output);
+                    
+                } catch (error) {
+                    console.error("Processing error:", error);
+                    
+                    // Hide loading indicator
+                    loadingIndicator.style.display = 'none';
+                    
+                    // Show error message
+                    errorMessage.textContent = "Error processing file: " + error.message;
+                    errorMessage.style.display = 'block';
+                } finally {
+                    // Reset button state
+                    processBtn.disabled = false;
+                    processBtn.textContent = "Process & Download CSV";
+                    processBtn.style.opacity = "1";
+                }
+            };
+
+            reader.onerror = function() {
+                // Hide loading indicator
+                loadingIndicator.style.display = 'none';
+                
+                // Show error message
+                errorMessage.textContent = "Error reading file. Please try again.";
+                errorMessage.style.display = 'block';
+                
+                // Reset button state
+                processBtn.disabled = false;
+                processBtn.textContent = "Process & Download CSV";
+                processBtn.style.opacity = "1";
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function downloadExcelCSV(data) {
+            if (!data.length) {
+                document.getElementById("excelError").textContent = "No data found in the file";
+                document.getElementById("excelError").style.display = 'block';
+                return;
+            }
+
+            try {
+                const headers = Object.keys(data[0]).join(",");
+                const rows = data.map(r =>
+                    Object.values(r).map(v => `"${v}"`).join(",")
+                );
+
+                const csv = [headers, ...rows].join("\n");
+                const blob = new Blob([csv], { type: "text/csv" });
+
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "processed_data.csv";
+                
+                // Auto-click to download
+                link.click();
+                
+                // Clean up
+                setTimeout(() => URL.revokeObjectURL(link.href), 100);
+                
+            } catch (error) {
+                console.error("Download error:", error);
+                document.getElementById("excelError").textContent = "Error generating CSV file";
+                document.getElementById("excelError").style.display = 'block';
+            }
+        }
+
+        function resetExcelApp() {
+            document.getElementById("excelFileInput").value = '';
+            document.getElementById("excelSuccess").style.display = 'none';
+            document.getElementById("excelError").style.display = 'none';
+            document.getElementById("excelLoading").style.display = 'none';
+            document.getElementById("excelProcessBtn").disabled = false;
+            document.getElementById("excelProcessBtn").textContent = "Process & Download CSV";
+            document.getElementById("excelProcessBtn").style.opacity = "1";
+        }
+
+        // Add interactivity to the excel file input
+        document.getElementById('excelFileInput').addEventListener('change', function(e) {
+            // Reset messages when new file is selected
+            document.getElementById("excelSuccess").style.display = 'none';
+            document.getElementById("excelError").style.display = 'none';
+        });
+
         // Format file size
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 Bytes';
@@ -897,10 +1420,8 @@
 
         // Initialize
         window.onload = function() {
-            // Add some example data for testing
-            setTimeout(() => {
-                showStatus('Ready to process PDF files', 'info');
-            }, 1000);
+            // Start on home page
+            switchTool('home');
         };
     </script>
 </body>
