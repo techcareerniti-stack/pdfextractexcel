@@ -1275,13 +1275,13 @@
                             category = category.slice(0, -1);
                         }
 
-                        /* ---------- StateKota (S) ---------- */
-                        let stateKota = "";
+                        /* ---------- StateQuota (S) ---------- */
+                        let stateQuota = "";
                         let upperCat = category.toUpperCase();
                         const isException = (upperCat === "EWS");
 
                         if (!isException && upperCat.endsWith("S")) {
-                            stateKota = "Yes";
+                            stateQuota = "Yes";
                             category = category.slice(0, -1);
                         }
 
@@ -1310,7 +1310,7 @@
                             ...row,
                             Gender: gender,
                             Category: category,
-                            StateKota: stateKota,
+                            StateQuota: stateQuota,
                             SpecialReservation: specialReservation,
                             Alloted: alloted
                         });
