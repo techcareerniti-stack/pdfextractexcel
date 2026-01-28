@@ -1260,7 +1260,7 @@
 
                         /* ---------- Gender ---------- */
                         let gender = "All";
-                       //if (first === "G") gender = "All";
+                        //if (first === "G") gender = "All";
                         if (first === "L") gender = "Female";
 
                         /* Remove first letter G / L */
@@ -1274,16 +1274,21 @@
                             alloted = last;
                             category = category.slice(0, -1);
                         }
-
                         /* ---------- StateQuota (S) ---------- */
-                        let stateQuota = "";
+                        let StateQuota = "";
                         let upperCat = category.toUpperCase();
-                        const isException = (upperCat === "EWS");
 
-                        if (!isException && upperCat.endsWith("S")) {
-                            stateQuota = "Yes";
-                            category = category.slice(0, -1);
+                        // TFWS should show Yes, but category should NOT be modified
+                        if (upperCat === "TFWS") {
+                            StateQuota = "Yes";
                         }
+
+                        // Other categories ending with S (except EWS)
+                        else if (upperCat.endsWith("S") && upperCat !== "EWS") {
+                            StateQuota = "Yes";
+                            category = category.slice(0, -1); // remove S
+                        }
+
 
                         /* ---------- SpecialReservation ---------- */
                         let specialReservation = "";
@@ -1310,7 +1315,7 @@
                             ...row,
                             Gender: gender,
                             Category: category,
-                            StateQuota: stateQuota,
+                            StateQuota: StateQuota,
                             SpecialReservation: specialReservation,
                             Alloted: alloted
                         });
