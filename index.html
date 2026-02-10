@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Processing Toolkit</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css ">
     <style>
         /* Reset and Base Styles */
         * {
@@ -768,12 +768,12 @@
     </div>
 
     <!-- PDF.js library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js "></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js "></script>
     
     <script>
         // Set up PDF.js worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js ';
 
         // Navigation functionality
         function toggleMenu() {
@@ -813,7 +813,7 @@
             }
         }
 
-        // PDF Processor Class
+        // PDF Processor Class - UPDATED with improved patterns
         class PDFProcessor {
             constructor() {
                 this.patternsToProcess = [
@@ -838,11 +838,11 @@
                     "GNT2S", "GNT2H", "GNT2O", "GNT3S", "GNT3H", "GNT3O",
                     "GSEBCS", "GSEBCH", "GSEBCO", "LOPENS", "LOPENH", "LOPENO",
                     "LOBCS", "LOBCH", "LOBCO", "LSCS", "LSCH", "LSCO",
-                    "LSTS", "LSTH", "LSTO", "LSEBCS", "LSEBCH", "LSEBCO",
-                    "LNT1H", "LNT2S", "LNT2H", "LNT2O", "LNT3O", "TFWS",
+                    "LSTS", "LSTH", "LSTO", "LSEBCS", "LSEBCH", "LSEBCO","LVJS","LVJH", "LVJO", "LNT1S",
+                    "LNT1H", "LNT2S", "LNT2H", "LNT2O", "LNT3O", "TFWS","LNT1O","LNT3H","LNT3S",
                     "EWS", "PWDOPENS", "PWDOPENH", "PWDOPENO", "PWDSCS",
-                    "PWDSCH", "PWDOBCS", "PWDOBCH", "PWDSEBCH", "DEFOPENS",
-                    "DEFOBCS", "DEFSCS", "DEFROBCS", "DEFRSEBCS", "ORPHAN", "MI"
+                    "PWDSCH", "PWDOBCS", "PWDOBCH", "PWDSEBCH", "DEFOPENS","PWDROBC H","PWDSEBCS",
+                    "DEFOBCS", "DEFSCS", "DEFROBCS", "DEFRSEBCS", "ORPHAN", "MI","DEFRSCS","DEFSEBCS"," DEFRSEBC S","DEFRROBCS","DEFRROBC H","DEFRSEBC H","DEFRSEBC O","DEFRSCS H","DEFRSCS O","DEFOBC H","DEFSCS H","DEFSCS O","DEFSEBC H","DEFSEBC O","DEFRSCS S","DEFRSEBC S"
                 ];
                 
                 this.statusList = [
@@ -860,6 +860,10 @@
                     "Government Autonomous",
                     "Un-Aided",
                     "University",
+                    "Un-Aided Home University : Punyashlok Ahilyadevi Holkar Solapur University",
+                    "Un-Aided Home University : Dr.Babasaheb Ambedkar Marathwada University",
+                    "Un-Aided Home University : Swami Ramanand Teerth Marathwada University, Nanded",
+                    "Un-Aided Home University : Shivaji University",
                     "Government"
                 ];
             }
@@ -935,86 +939,125 @@
             }
 
             parseTable(text) {
-                const cleanedText = this.cleanText(text);
-                const result = [];
-                const stats = {
-                    colleges: new Set(),
-                    branches: new Set(),
-                    categories: new Set()
-                };
+    const cleanedText = this.cleanText(text);
+    const result = [];
+    const stats = {
+        colleges: new Set(),
+        branches: new Set(),
+        categories: new Set()
+    };
 
-                const collegeRegex = /(\d{5})\s*-\s*([^0-9]+?)(?=\d{10}\s*-)/g;
-                const collegeMatches = [...cleanedText.matchAll(collegeRegex)];
+    // IMPROVED: Better college regex to handle various formats
+    // Now handles college codes with optional dashes and various college name formats
+    const collegeRegex = /(\d{5})\s*[-–]\s*([A-Za-z0-9\s&'’\.,\(\)\-]+?)(?=(?:\d{10}[A-Z]?\s*[-–])|$)/gi;
+    const collegeMatches = [...cleanedText.matchAll(collegeRegex)];
 
-                if (collegeMatches.length === 0) {
-                    return { rows: [], stats: stats };
-                }
+    if (collegeMatches.length === 0) {
+        // Alternative pattern if the main one doesn't work
+        const altCollegeRegex = /(\d{5})\s*[-–]\s*([^\n]+?)(?=\s*\d{10})/gi;
+        const altMatches = [...cleanedText.matchAll(altCollegeRegex)];
+        
+        if (altMatches.length === 0) {
+            console.log("Debug: No college matches found in text");
+            console.log("Sample text:", cleanedText.substring(0, 500));
+            return { rows: [], stats: stats };
+        }
+        
+        // Use alternative matches
+        collegeMatches.push(...altMatches);
+    }
 
-                collegeMatches.forEach((colMatch, colIndex) => {
-                    const collegeName = colMatch[2].trim();
-                    stats.colleges.add(collegeName);
-
-                    const start = colMatch.index;
-                    const end = (collegeMatches[colIndex + 1]) ? collegeMatches[colIndex + 1].index : cleanedText.length;
-                    const collegeBlock = cleanedText.substring(start, end);
-
-                    let status = "N/A";
-                    for (const s of this.statusList) {
-                        if (collegeBlock.toLowerCase().includes(s.toLowerCase())) {
-                            status = s;
-                            break;
-                        }
-                    }
-
-                    const branchRegex = /(\d{10})\s*-\s*([A-Za-z &()]+?)(?=\s+Status:)/g;
-                    const branchMatches = [...collegeBlock.matchAll(branchRegex)];
-
-                    branchMatches.forEach((brMatch, brIndex) => {
-                        const branchName = brMatch[2].trim();
-                        stats.branches.add(branchName);
-
-                        const bStart = brMatch.index;
-                        const bEnd = (branchMatches[brIndex + 1]) ? branchMatches[brIndex + 1].index : collegeBlock.length;
-                        const branchBlock = collegeBlock.substring(bStart, bEnd);
-
-                        const catRegex = new RegExp(`\\b(${this.categories.join('|')})\\b`, 'gi');
-                        const categories = branchBlock.match(catRegex);
-
-                        if (!categories) return;
-
-                        const pairs = branchBlock.match(/\d+\s*\([\d.]+\)/g);
-                        if (!pairs) return;
-
-                        categories.forEach((cat, i) => {
-                            if (!pairs[i]) return;
-
-                            const match = pairs[i].match(/(\d+)\s*\(([\d.]+)\)/);
-                            if (!match) return;
-
-                            stats.categories.add(cat);
-
-                            result.push({
-                                college: collegeName,
-                                status: status,
-                                branch: branchName,
-                                category: cat,
-                                rank: parseInt(match[1]),
-                                percentile: parseFloat(match[2])
-                            });
-                        });
-                    });
-                });
-
-                return {
-                    rows: result,
-                    stats: {
-                        totalRows: result.length,
-                        totalColleges: stats.colleges.size,
-                        totalBranches: stats.branches.size,
-                        totalCategories: stats.categories.size
-                    }
-                };
+    collegeMatches.forEach((colMatch, colIndex) => {
+        const collegeCode = colMatch[1];
+        let collegeName = colMatch[2].trim();
+        
+        // Clean up college name - remove trailing numbers or strange characters
+        collegeName = collegeName.replace(/\s*\d+$/, '').trim();
+        
+        // Remove any trailing status indicators
+        const statusIndicators = this.statusList.map(s => s.split(':')[0].trim());
+        for (const indicator of statusIndicators) {
+            if (collegeName.includes(indicator)) {
+                collegeName = collegeName.replace(new RegExp(`\\s*${indicator}\\s*$`), '').trim();
             }
+        }
+        
+        // Store college with code for reference
+        const fullCollegeName = `${collegeCode} - ${collegeName}`;
+        stats.colleges.add(fullCollegeName);
+
+        const start = colMatch.index;
+        const end = (collegeMatches[colIndex + 1]) ? collegeMatches[colIndex + 1].index : cleanedText.length;
+        const collegeBlock = cleanedText.substring(start, end);
+
+        let status = "N/A";
+        for (const s of this.statusList) {
+            if (collegeBlock.toLowerCase().includes(s.toLowerCase())) {
+                status = s;
+                break;
+            }
+        }
+
+        // Branch regex - improved to handle more complex branch names
+        const branchRegex = /(\d{10}[A-Z]?)\s*[-–]\s*([A-Za-z0-9\s&\[\]\/\(\)\-\+\.]+?)(?=\s+(?:Status:|Category:|\b(?:GOPENS|GSCS|GVJS|GNT1S|GNT2S|GOBCS|GSEBCS|LOPENS|LNT2S|LOBCS|LSEBCS|PWDOPENS|PWDOBCS|TFWS|PWD|OPENS|OBCS|EWS|SC|ST)\b))/gi;
+        const branchMatches = [...collegeBlock.matchAll(branchRegex)];
+
+        // If no matches with complex pattern, try simpler pattern
+        if (branchMatches.length === 0) {
+            const simpleBranchRegex = /(\d{10}[A-Z]?)\s*[-–]\s*([^\d]+?)(?=\d{5}\s*[-–]|\s+[A-Z]+\s+\d|$)/gi;
+            const simpleMatches = [...collegeBlock.matchAll(simpleBranchRegex)];
+            branchMatches.push(...simpleMatches);
+        }
+
+        branchMatches.forEach((brMatch, brIndex) => {
+            let branchName = brMatch[2].trim();
+            
+            // Clean up branch name
+            branchName = branchName.replace(/\s+$/g, '').trim();
+            
+            stats.branches.add(branchName);
+
+            const bStart = brMatch.index;
+            const bEnd = (branchMatches[brIndex + 1]) ? branchMatches[brIndex + 1].index : collegeBlock.length;
+            const branchBlock = collegeBlock.substring(bStart, bEnd);
+
+            // Find categories in branch block
+            const catRegex = new RegExp(`\\b(${this.categories.join('|')})\\b`, 'gi');
+            const categories = branchBlock.match(catRegex) || [];
+
+            // Find rank/percentile pairs
+            const pairs = branchBlock.match(/\d+\s*\([\d.]+\)/g) || [];
+
+            categories.forEach((cat, i) => {
+                if (!pairs[i]) return;
+
+                const match = pairs[i].match(/(\d+)\s*\(([\d.]+)\)/);
+                if (!match) return;
+
+                stats.categories.add(cat);
+
+                result.push({
+                    college: fullCollegeName,
+                    status: status,
+                    branch: branchName,
+                    category: cat,
+                    rank: parseInt(match[1]),
+                    percentile: parseFloat(match[2])
+                });
+            });
+        });
+    });
+
+    return {
+        rows: result,
+        stats: {
+            totalRows: result.length,
+            totalColleges: stats.colleges.size,
+            totalBranches: stats.branches.branches ? stats.branches.branches.size : stats.branches.size,
+            totalCategories: stats.categories.size
+        }
+    };
+}
         }
 
         // PDF Tool Variables
@@ -1259,8 +1302,8 @@
                         const last  = category.slice(-1);
 
                         /* ---------- Gender ---------- */
-                        let gender = "All";
-                        //if (first === "G") gender = "All";
+                        let gender = "";
+                        if (first === "G") gender = "All";
                         if (first === "L") gender = "Female";
 
                         /* Remove first letter G / L */
@@ -1274,21 +1317,16 @@
                             alloted = last;
                             category = category.slice(0, -1);
                         }
-                        /* ---------- StateQuota (S) ---------- */
-                        let StateQuota = "";
+
+                        /* ---------- StateKota (S) ---------- */
+                        let stateKota = "";
                         let upperCat = category.toUpperCase();
+                        const isException = (upperCat === "EWS" || upperCat === "TFWS");
 
-                        // TFWS should show Yes, but category should NOT be modified
-                        if (upperCat === "TFWS") {
-                            StateQuota = "Yes";
+                        if (!isException && upperCat.endsWith("S")) {
+                            stateKota = "Yes";
+                            category = category.slice(0, -1);
                         }
-
-                        // Other categories ending with S (except EWS)
-                        else if (upperCat.endsWith("S") && upperCat !== "EWS") {
-                            StateQuota = "Yes";
-                            category = category.slice(0, -1); // remove S
-                        }
-
 
                         /* ---------- SpecialReservation ---------- */
                         let specialReservation = "";
@@ -1315,7 +1353,7 @@
                             ...row,
                             Gender: gender,
                             Category: category,
-                            StateQuota: StateQuota,
+                            StateKota: stateKota,
                             SpecialReservation: specialReservation,
                             Alloted: alloted
                         });
